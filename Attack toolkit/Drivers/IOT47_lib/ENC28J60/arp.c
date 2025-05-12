@@ -4,6 +4,8 @@ extern const uint8_t macaddr[6];
 extern uint8_t ip[4];
 extern char debug_string[60];
 int dem =1;
+uint8_t modbus_status_init =0;
+extern uint8_t alarm;
 struct
 {
    uint8_t ip[4];
@@ -32,12 +34,21 @@ void ARP_table_setIP(uint8_t *ip_set, uint8_t *mac_set)
 {
   if(ARP_table_checkIP(ip_set) == -1) //neu chua ton tai IP trong table
   {
-		sprintf(debug_string,"Thiet bi %i ip %i.%i.%i.%i = %02X:%02X:%02X:%02X:%02X:%02X\r\n",dem, ip_set[0],ip_set[1],ip_set[2],ip_set[3],mac_set[0],mac_set[1],mac_set[2],mac_set[3],mac_set[4],mac_set[5]);
-    UART_putString(debug_string);
-		dem ++;
-    memcpy(ARP_table[ARP_table_index].ip,ip_set,4);
-    memcpy(ARP_table[ARP_table_index].mac,mac_set,6);
-    ARP_table_index++;if(ARP_table_index==5)ARP_table_index=0; //neu so luong ip vuot qua muc cho phep thi quay lai
+		if (modbus_status_init == 0)
+		{
+			sprintf(debug_string,"Thiet bi %i ip %i.%i.%i.%i = %02X:%02X:%02X:%02X:%02X:%02X\r\n",dem, ip_set[0],ip_set[1],ip_set[2],ip_set[3],mac_set[0],mac_set[1],mac_set[2],mac_set[3],mac_set[4],mac_set[5]);
+			UART_putString(debug_string);
+			dem ++;
+			memcpy(ARP_table[ARP_table_index].ip,ip_set,4);
+			memcpy(ARP_table[ARP_table_index].mac,mac_set,6);
+			ARP_table_index++;if(ARP_table_index==10)ARP_table_index=0; //neu so luong ip vuot qua muc cho phep thi quay lai
+		}
+		else
+		{
+			sprintf(debug_string,"Thiet bi la %i ip %i.%i.%i.%i = %02X:%02X:%02X:%02X:%02X:%02X\r\n",dem, ip_set[0],ip_set[1],ip_set[2],ip_set[3],mac_set[0],mac_set[1],mac_set[2],mac_set[3],mac_set[4],mac_set[5]);
+			UART_putString(debug_string);
+			alarm = 1;
+		}
   }
   //else
   //  UART_putString("IP da ton tai trong bang\r\n");

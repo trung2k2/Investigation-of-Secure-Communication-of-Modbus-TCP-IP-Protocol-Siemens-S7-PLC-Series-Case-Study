@@ -93,24 +93,24 @@ void TCP_read(uint8_t *TCP_Frame,uint16_t len)
 		if(TCP_Struct_Frame->data[7 + ((TCP_Struct_Frame->data_offset >> 2) - 20)] == 0x03 
 			||TCP_Struct_Frame->data[7 + ((TCP_Struct_Frame->data_offset >> 2) - 20)] == 0x10)
 		{			
-		 datalength= swap16(TCP_Struct_Frame->TotoLength) -20 - (TCP_Struct_Frame->data_offset >> 2);  // ( >> 4)*4 = >> 2
+		 //datalength= swap16(TCP_Struct_Frame->TotoLength) -20 - (TCP_Struct_Frame->data_offset >> 2);  // ( >> 4)*4 = >> 2
 			
 //		 sprintf(debug_string,"Do dai data goi tin la: %u\r\n",datalength); //in ra do dai goi tin
 //     UART_putString(debug_string);
 //		 UART_putString("Du lieu nhan duoc: ");
 			
-			if(send_status == 3)
+			//if(send_status == 3)
 				modbus_readpacket(TCP_Frame,len,TCP_Struct_Frame->data[7 + ((TCP_Struct_Frame->data_offset >> 2) - 20)]);
 		}
-			if(modbus_search == 1)
+			if(modbus_search == 2)
 			{
-				if((modbus_fcode == 0x10 && datalength >= 12)||(modbus_fcode == 0x03 && datalength == 12))
-				{
+				//if((modbus_fcode == 0x10 && datalength >= 12)||(modbus_fcode == 0x03 && datalength == 12))
+				//{
 					memcpy(modbus_ARP_table[0].ip,TCP_Struct_Frame->SourceIP,4);
 					memcpy(modbus_ARP_table[1].ip,TCP_Struct_Frame->DestIP,4);
 					memcpy(modbus_ARP_table[0].mac,TCP_Struct_Frame->MAC_nguon,6);
 					memcpy(modbus_ARP_table[1].mac,TCP_Struct_Frame->MAC_dich,6);
-				}
+				//}
 				modbus_search = 2;
 				send_status = 2;
 			}

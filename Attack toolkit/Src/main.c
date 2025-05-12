@@ -66,11 +66,13 @@ struct
    uint8_t mac[6];
 }modbus_ARP_table[2];
 extern char debug_string[60];
+extern uint8_t modbus_status_init;
 uint8_t ip_server[4]={192,168,0,0};
 int count =0;
 int led =1;
 int dao=0;
 char button = 0;
+uint8_t alarm = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -93,17 +95,23 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	 if(htim->Instance == TIM2)
 	 {
-		 ARP_clear_table();
+		 			 HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_10);
+
+		 //ARP_clear_table();
+		 if(alarm == 1)
+		 {
+			 HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_10);
+			 led++;
+		 }
+		 
 	 }
 }
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {	
 	if(GPIO_Pin == GPIO_PIN_0 && count==0)
 	{
-		if (GPIO_Pin == GPIO_PIN_11)  // Thay dúng chân INT c?a b?n
+		if (GPIO_Pin == GPIO_PIN_11)  
     {
-        // Ð?t c? ho?c x? lý ng?t t?i dây
-        // Ví d? don gi?n:
         extern volatile uint8_t enc_irq_flag;
         enc_irq_flag = 1;
     }
@@ -169,11 +177,13 @@ int main(void)
 			ARP_send_request(ip_server);
       HAL_Delay(10);
 		}
+		 HAL_GPIO_WritePin(GPIOB,GPIO_PIN_10,GPIO_PIN_RESET);
 	volatile uint8_t enc_irq_flag = 0;
+		modbus_status_init = 1;
   while (1)
   {
     /* USER CODE END WHILE */
-		if(button == 1)
+		if(alarm == 1)
 		{
 			for (int n=0;n<ARP_table_index;n++)
 				{
@@ -189,7 +199,7 @@ int main(void)
 								
 						}
 				}
-				button = 0;
+				alarm = 0;
 		}
 		if (enc_irq_flag)
 			{
@@ -208,51 +218,9 @@ int main(void)
 
 			NET_loop();
 			//HAL_Delay(10);
-		if(send_status == 2 && count_send !=1000)
-			count_send++;
-		if(send_status == 1)
-			{
-				for (int n=0;n<ARP_table_index;n++)
-				{
-					for (int m=0;m<ARP_table_index;m++)
-						{
-							if(m!=n)
-							{
-								ARP_send_request_fake(ARP_table[m].ip, ARP_table[n].ip, ARP_table[m].mac);
-								HAL_Delay(10);
-							}						
-						}
-				}
-				send_status = 0;
-			}
-			else if(send_status == 2 && count_send == 1000)
-			{
-				for (int n=0;n<ARP_table_index;n++)
-				{
-					for (int m=n+1;m<ARP_table_index;m++)
-						{
-							if(modbus_ARP_table[1].ip[3] == ARP_table[n].ip[3] && modbus_ARP_table[0].ip[3] == ARP_table[m].ip[3])
-							{
-								continue;
-							}	
-							else if(modbus_ARP_table[0].ip[3] == ARP_table[n].ip[3] && modbus_ARP_table[1].ip[3] == ARP_table[m].ip[3])
-							{
-								continue;
-							}	
-							else
-							{
-								//if(modbus_ARP_table[m].ip[3] != modbus_ARP_table[n].ip[3] )
-									ARP_send_request_reborn(ARP_table[m].ip, ARP_table[n].ip, ARP_table[m].mac, ARP_table[n].mac);		
-									HAL_Delay(10);			
-									ARP_send_request_reborn(ARP_table[n].ip, ARP_table[m].ip, ARP_table[n].mac, ARP_table[m].mac);		
-									HAL_Delay(10);									
-							}
-								
-						}
-				}
-				count_send =0;
-				send_status = 3;
-			}
+		//if(send_status == 2 && count_send !=1000)
+			//count_send++;
+		
 //			else if(send_status == 3)
 //			{
 //				ARP_send_request_fake(modbus_ARP_table[0].ip, modbus_ARP_table[1].ip, modbus_ARP_table[0].mac);
@@ -372,7 +340,7 @@ static void MX_TIM2_Init(void)
   htim2.Instance = TIM2;
   htim2.Init.Prescaler = 7200-1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 10000;
+  htim2.Init.Period = 2499;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)

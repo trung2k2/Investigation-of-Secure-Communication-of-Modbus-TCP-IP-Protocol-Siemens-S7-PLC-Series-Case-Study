@@ -6,7 +6,7 @@ static SPI_HandleTypeDef *hspi;
 uint8_t gateway_ip[4];
 uint8_t gateway_mac[6];
 const uint8_t macaddr [6] = {0x00,0x00,0x20,0x07,0x19,0x98};
-uint8_t ip [4] = {192,168,1,197};
+uint8_t ip [4] = {192,168,0,210};
 char debug_string[60];
 //--------------------------------------------------------------------------
 void SPI_SendByte(uint8_t _byte)
